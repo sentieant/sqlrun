@@ -15,7 +15,7 @@ export class RegisterComponent {
 
   constructor() { }
 
-  login() {
+  register() {
     console.log('Username:', this.username);
     console.log('Password:', this.password);
   }
