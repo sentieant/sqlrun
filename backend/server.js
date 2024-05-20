@@ -30,6 +30,17 @@ userDb.run(`CREATE TABLE IF NOT EXISTS user(
     points INTEGER DEFAULT 0
 )`);
 
+app.post('/api/register', (req, res) => {
+    const {username, password} = req.body;
+    const hashedPassword = bcrypt.hashSync(password, 10);
+
+    userDb.run(`INSERT INTO users (username, password) values (?, ?)`, [username, hashedPassword], function(err){
+        if(err){
+            return res.status(400).json({error: err.message})
+        }
+    });
+});
+
 
 
 
