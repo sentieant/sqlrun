@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const SECRET_KEY = 'NISB559'
@@ -28,3 +29,7 @@ userDb.run(`CREATE TABLE IF NOT EXISTS user(
     password TEXT,
     points INTEGER DEFAULT 0
 )`);
+
+
+
+
