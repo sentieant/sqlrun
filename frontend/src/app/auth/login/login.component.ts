@@ -21,6 +21,10 @@ export class LoginComponent {
     this.authService.login({ username: this.username, password: this.password}).subscribe(
       (response)=> {
         this.authService.saveToken(response.token);
+        this.router.navigate(['/']);
+      }, 
+      (error)=>{
+        console.error('Login failed', error);
       }
     );
   }
