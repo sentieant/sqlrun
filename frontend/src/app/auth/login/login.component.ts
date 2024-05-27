@@ -9,23 +9,28 @@ import { AuthService } from '../auth.service';
   standalone: true,
   imports: [FormsModule, CommonModule, RouterModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrls: ['./login.component.css'] 
 })
 export class LoginComponent {
   username!: string;
   password!: string;
 
-  constructor(private authService: AuthService, private router: Router) {console.log('in login');}
-  
+  constructor(private authService: AuthService, private router: Router) {
+  }
+
   login() {
-    this.authService.login({ username: this.username, password: this.password}).subscribe(
-      (response)=> {
+    this.authService.login({ username: this.username, password: this.password }).subscribe(
+      (response) => {
         this.authService.saveToken(response.token);
         this.router.navigate(['/']);
       }, 
-      (error)=>{
+      (error) => {
         console.error('Login failed', error);
       }
     );
+  }
+
+  redirectToRegister(){
+    this.router.navigate(['/register']);
   }
 }

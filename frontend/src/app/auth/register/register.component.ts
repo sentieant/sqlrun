@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import {Router} from '@angular/router';
-import {AuthService} from '../auth.service';
+import { Router } from '@angular/router';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-register',
@@ -20,11 +20,12 @@ export class RegisterComponent {
     console.log("Hello");
    }
 
-  register() {
-    this.authService.register({username: this.username, password: this.password}).subscribe(
+   register() {
+    this.authService.register({ username: this.username, password: this.password }).subscribe(
       () => {
+        console.log('Registration successful');
         this.router.navigate(['/login']);
-      }, 
+      },
       (error) => {
         console.error('Registration failed', error);
       }
