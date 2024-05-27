@@ -12,3 +12,5 @@ import { FormsModule } from '@angular/forms';
 export class AppComponent {
   title = 'frontend';
 }
+
+console.log("Hello");
