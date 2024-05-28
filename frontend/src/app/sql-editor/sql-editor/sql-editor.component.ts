@@ -34,7 +34,7 @@ export class SqlEditorComponent implements AfterViewInit {
       const ace = (window as any).ace;
       const sqlQuery = ace.edit(this.editor.nativeElement).getValue();
       const token = this.authService.getToken();
-      console.log('Token:', token); // Log the token for debugging
+      console.log('Token:', token); 
 
       this.http
         .post<any>('api/query', { sql: sqlQuery }, {
