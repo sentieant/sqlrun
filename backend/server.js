@@ -93,15 +93,31 @@ function authenticateToken(req, res, next) {
 
 app.post('/api/query', authenticateToken, (req, res) => {
     const { sql } = req.body;
-
+    console.log('Executing query:', sql);
+    
     queryDb.all(sql, [], (err, rows) => {
         if (err) {
             console.error('Error executing query:', err.message);
-            return res.status(400).json({ error: err.message });
+            return res.status(500).json({ error: 'Error executing query', details: err.message });
         }
-
-        res.json({ rows });
+        res.json({ results: rows });
     });
+});
+
+
+app.get('/api/test-database-connection', (req, res) => {
+    queryDb.all('SELECT 1', [], (err, rows) => {
+        if (err) {
+            console.error('Error testing database connection:', err.message);
+            return res.status(500).json({ error: 'Error testing database connection' });
+        }
+        res.json({ message: 'Database connection test successful' });
+    });
+});
+
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err.message);
+    res.status(500).json({ error: 'Internal Server Error' });
 });
 
 const PORT = process.env.PORT || 3000;

@@ -9,8 +9,7 @@ import { AuthService } from '../../auth/auth.service';
 })
 export class SqlEditorComponent implements AfterViewInit {
   @ViewChild('editor') private editor!: ElementRef<HTMLElement>;
-
-  private results: any;
+  public results: any;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -34,31 +33,33 @@ export class SqlEditorComponent implements AfterViewInit {
       const ace = (window as any).ace;
       const sqlQuery = ace.edit(this.editor.nativeElement).getValue();
       const token = this.authService.getToken();
-      console.log('Token:', token); 
 
       this.http
-        .post<any>('api/query', { sql: sqlQuery }, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        .subscribe(
-          (data) => {
-            this.results = data;
-            alert('Query Executed!');
-          },
-          (error: HttpErrorResponse) => {
-            if (error.status === 403) {
-              alert('Authentication failed. Please log in again.');
-            } else if (error.status === 401) {
-              alert('Unauthorized access. Please check your permissions.');
-            } else {
-              console.error('Error executing query:', error);
-              alert('An error occurred while executing the query.');
-            }
-            this.results = { error: error.message };
-          }
-        );
+          .post<any>('http://localhost:3000/api/query', { sql: sqlQuery }, {
+              headers: {
+                  Authorization: `Bearer ${token}`
+              }
+          })
+          .subscribe(
+              (data) => {
+                  this.results = data;
+                  alert('Query Executed!');
+              },
+              (error: HttpErrorResponse) => {
+                  if (error.status === 403) {
+                      alert('Authentication failed. Please log in again.');
+                  } else if (error.status === 401) {
+                      alert('Unauthorized access. Please check your permissions.');
+                  } else if (error.status === 500) {
+                      console.error('Server error details:', error.error.details); 
+                      alert('An error occurred while executing the query.');
+                  } else {
+                      console.error('Error executing query:', error);
+                      alert('An error occurred while executing the query.');
+                  }
+                  this.results = { error: error.message };
+              }
+          );
     }
   }
 }
