@@ -1,10 +1,13 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-sql-editor',
+  standalone: true,
   templateUrl: './sql-editor.component.html',
+  imports: [CommonModule],
   styleUrls: ['./sql-editor.component.css']
 })
 export class SqlEditorComponent implements AfterViewInit {
@@ -42,7 +45,7 @@ export class SqlEditorComponent implements AfterViewInit {
           })
           .subscribe(
               (data) => {
-                  this.results = data;
+                  this.results = JSON.stringify(data, null, 2); // Format results as JSON
                   alert('Query Executed!');
               },
               (error: HttpErrorResponse) => {
