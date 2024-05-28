@@ -1,0 +1,14 @@
+CREATE TABLE Students (
+    name VARCHAR(100),
+    usn VARCHAR(20),
+    class VARCHAR(50)
+);
+CREATE TABLE Students (
+    name VARCHAR(100),
+    usn VARCHAR(20),
+    class VARCHAR(50)
+);
+
+INSERT INTO Students (name, usn, class) VALUES ('Alice', '1', 'A');
+INSERT INTO Students (name, usn, class) VALUES ('Bob', '2', 'B');
+INSERT INTO Students (name, usn, class) VALUES ('Charlie', '3', 'C');

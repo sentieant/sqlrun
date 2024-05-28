@@ -80,6 +80,19 @@ function authenticateToken(req, res, next) {
     });
 }
 
+app.post('/api/query', authenticateToken, (req, res) => {
+    const {sql} = req.body;
+
+    query.Db.all(sql, [], (err, rows) => {
+        if(err){
+            res.status(400).json({error: err.message});
+            return;
+        }
+
+        res.json({rows});
+    });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

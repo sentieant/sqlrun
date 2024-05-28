@@ -1,42 +1,52 @@
-import { Component, OnInit } from '@angular/core';
-import * as ace from 'ace-builds';
+import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 
 @Component({
-  selector: 'app-sql-editor',
-  standalone: true,
-  imports: [],
-  templateUrl: './sql-editor.component.html',
-  styleUrl: './sql-editor.component.css'
+  selector: "app-sql-editor",
+  templateUrl: "./sql-editor.component.html",
+  styleUrls: ["./sql-editor.component.css"]
 })
-export class SqlEditorComponent implements OnInit {
-  private editor!: ace.Ace.Editor;
+export class SqlEditorComponent implements AfterViewInit {
+  @ViewChild("editor") private editor!: ElementRef<HTMLElement>; 
+
   private results: any;
-  private points!: number;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
-  ngOnInit() {
-    this.editor = ace.edit('editor');
-    this.editor.setTheme('ace/theme/monokai');
-    this.editor.session.setMode('ace/mode/sql');
+  async ngAfterViewInit(): Promise<void> {
+    if (typeof window !== 'undefined') {
+      const ace = await import("ace-builds");
+
+      ace.config.set("fontSize", "14px");
+      ace.config.set(
+        "basePath",
+        "https://unpkg.com/ace-builds@1.4.12/src-noconflict"
+      );
+      const aceEditor = ace.edit(this.editor.nativeElement);
+      aceEditor.setTheme("ace/theme/twilight");
+      aceEditor.session.setMode("ace/mode/sql");
+    }
   }
 
   runQuery() {
-    const sqlQuery = this.editor.getValue();
-    this.http.post<any>('api/query', {sql: sqlQuery}, {
-      headers: {
-        Authorization: `Bearer ${this.authService.getToken()}`
-      }
-    }).subscribe(
-      data => {
-        this.results = data;
-        alert('Query Executed!');
-      },
-      error => {
-        this.results = {error : error.message};
-      }
+    if (typeof window !== 'undefined') {
+      const ace = (window as any).ace;
+      const sqlQuery = ace.edit(this.editor.nativeElement).getValue();
+      this.http.post<any>('api/query', { sql: sqlQuery }, {
+        headers: {
+          Authorization: `Bearer ${this.authService.getToken()}`
+        }
+      }).subscribe(
+        (data) => {
+          this.results = data;
+          alert('Query Executed!');
+        },
+        (error) => {
+          console.error('Error executing query:', error);
+          this.results = { error: error.message };
+        }
       );
+    }
   }
 }
