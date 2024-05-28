@@ -66,30 +66,41 @@ app.post('/api/login', (req, res) => {
 });
 
 function authenticateToken(req, res, next) {
-    const token = req.headers['authorization'];
+    const authHeader = req.headers['authorization'];
+
+    if (!authHeader) {
+        console.log('Authorization header is missing');
+        return res.status(401).json({ error: 'Authorization header is missing' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
     if (!token) {
-        return res.sendStatus(401);
+        console.log('Bearer token is missing');
+        return res.status(401).json({ error: 'Bearer token is missing' });
     }
 
     jwt.verify(token, SECRET_KEY, (err, user) => {
         if (err) {
-            return res.sendStatus(403);
+            console.log('Invalid token:', err.message);
+            return res.status(403).json({ error: 'Invalid token' });
         }
         req.user = user;
+        console.log('User authenticated:', user);
         next();
     });
 }
 
 app.post('/api/query', authenticateToken, (req, res) => {
-    const {sql} = req.body;
+    const { sql } = req.body;
 
-    query.Db.all(sql, [], (err, rows) => {
-        if(err){
-            res.status(400).json({error: err.message});
-            return;
+    queryDb.all(sql, [], (err, rows) => {
+        if (err) {
+            console.error('Error executing query:', err.message);
+            return res.status(400).json({ error: err.message });
         }
 
-        res.json({rows});
+        res.json({ rows });
     });
 });
 
