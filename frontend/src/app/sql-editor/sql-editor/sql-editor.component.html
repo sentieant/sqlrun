@@ -1,9 +1,23 @@
 <div>
     <div #editor style="height: 400px; width: 100%;"></div>
     <button (click)="runQuery()">Run Query</button>
-    <div *ngIf="results">
+    <div *ngIf="results.length > 0">
       <h3>Results:</h3>
-      <pre>{{ results }}</pre>
+      <table>
+        <thead>
+          <tr>
+            <th *ngFor="let key of tableKeys">{{ key }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of results">
+            <td *ngFor="let key of tableKeys">{{ row[key] }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="results.length === 0">
+      <p>No results found.</p>
     </div>
   </div>
   

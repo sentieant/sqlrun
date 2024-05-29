@@ -12,19 +12,16 @@ import { AuthService } from '../../auth/auth.service';
 })
 export class SqlEditorComponent implements AfterViewInit {
   @ViewChild('editor') private editor!: ElementRef<HTMLElement>;
-  public results: any;
+  public results: any[] = [];
+  public tableKeys: string[] = [];
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
   async ngAfterViewInit(): Promise<void> {
     if (typeof window !== 'undefined') {
       const ace = await import('ace-builds');
-
       ace.config.set('fontSize', '14px');
-      ace.config.set(
-        'basePath',
-        'https://unpkg.com/ace-builds@1.4.12/src-noconflict'
-      );
+      ace.config.set('basePath', 'https://unpkg.com/ace-builds@1.4.12/src-noconflict');
       const aceEditor = ace.edit(this.editor.nativeElement);
       aceEditor.setTheme('ace/theme/twilight');
       aceEditor.session.setMode('ace/mode/sql');
@@ -38,31 +35,38 @@ export class SqlEditorComponent implements AfterViewInit {
       const token = this.authService.getToken();
 
       this.http
-          .post<any>('http://localhost:3000/api/query', { sql: sqlQuery }, {
-              headers: {
-                  Authorization: `Bearer ${token}`
-              }
-          })
-          .subscribe(
-              (data) => {
-                  this.results = JSON.stringify(data, null, 2); // Format results as JSON
-                  alert('Query Executed!');
-              },
-              (error: HttpErrorResponse) => {
-                  if (error.status === 403) {
-                      alert('Authentication failed. Please log in again.');
-                  } else if (error.status === 401) {
-                      alert('Unauthorized access. Please check your permissions.');
-                  } else if (error.status === 500) {
-                      console.error('Server error details:', error.error.details); 
-                      alert('An error occurred while executing the query.');
-                  } else {
-                      console.error('Error executing query:', error);
-                      alert('An error occurred while executing the query.');
-                  }
-                  this.results = { error: error.message };
-              }
-          );
+        .post<any>('http://localhost:3000/api/query', { sql: sqlQuery }, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        .subscribe(
+          (data) => {
+            if (data && data.results) {
+              this.results = data.results;
+              this.tableKeys = Object.keys(data.results[0]);
+            } else {
+              this.results = [];
+              this.tableKeys = [];
+            }
+            alert('Query Executed!');
+          },
+          (error: HttpErrorResponse) => {
+            if (error.status === 403) {
+              alert('Authentication failed. Please log in again.');
+            } else if (error.status === 401) {
+              alert('Unauthorized access. Please check your permissions.');
+            } else if (error.status === 500) {
+              console.error('Server error details:', error.error.details); 
+              alert('An error occurred while executing the query.');
+            } else {
+              console.error('Error executing query:', error);
+              alert('An error occurred while executing the query.');
+            }
+            this.results = [{ error: error.message }];
+            this.tableKeys = [];
+          }
+        );
     }
   }
 }
