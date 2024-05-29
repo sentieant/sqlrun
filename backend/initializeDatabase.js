@@ -15,9 +15,9 @@ db.serialize(() => {
         class VARCHAR(50)
     )`);
 
-    db.run(`INSERT INTO Students (name, usn, class) VALUES ('Alice', '1', 'A')`);
-    db.run(`INSERT INTO Students (name, usn, class) VALUES ('Bob', '2', 'B')`);
-    db.run(`INSERT INTO Students (name, usn, class) VALUES ('Charlie', '3', 'C')`);
+    db.run(`INSERT INTO Students (name, usn, class) VALUES ('Aravind', '1', 'A')`);
+    db.run(`INSERT INTO Students (name, usn, class) VALUES ('Prajwal', '2', 'B')`);
+    db.run(`INSERT INTO Students (name, usn, class) VALUES ('Namratha', '3', 'C')`);
 });
 
 db.close();
