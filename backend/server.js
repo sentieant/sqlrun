@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -6,7 +7,9 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const app = express();
-const SECRET_KEY = 'NISB559';
+const SECRET_KEY = process.env.SECRET_KEY || 'NISB559';
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -67,6 +70,7 @@ app.post('/api/login', (req, res) => {
 
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
+    console.log('Authorization header:', authHeader);
 
     if (!authHeader) {
         console.log('Authorization header is missing');
@@ -74,6 +78,7 @@ function authenticateToken(req, res, next) {
     }
 
     const token = authHeader.split(' ')[1];
+    console.log('Token:', token);
 
     if (!token) {
         console.log('Bearer token is missing');
@@ -91,19 +96,33 @@ function authenticateToken(req, res, next) {
     });
 }
 
+function isManipulativeQuery(sql) {
+    const forbiddenCommands = ["CREATE", "DROP", "UPDATE", "ALTER", "INSERT"];
+    const regex = new RegExp(`\\b(${forbiddenCommands.join('|')})\\b`, 'i');
+    
+    return regex.test(sql);
+}
+
 app.post('/api/query', authenticateToken, (req, res) => {
     const { sql } = req.body;
-    console.log('Executing query:', sql);
-    
+
+    console.log('Received SQL query:', sql);
+
+    if (isManipulativeQuery(sql)) {
+        console.warn('Attempted to execute a forbidden query:', sql);
+        return res.status(403).json({ error: "YOU CAN'T MANIPULATE THE DATABASE" });
+    }
+
+    console.log('Query passed validation, executing:', sql);
     queryDb.all(sql, [], (err, rows) => {
         if (err) {
             console.error('Error executing query:', err.message);
             return res.status(500).json({ error: 'Error executing query', details: err.message });
         }
+        console.log('Query executed successfully, results:', rows);
         res.json({ results: rows });
     });
 });
-
 
 app.get('/api/test-database-connection', (req, res) => {
     queryDb.all('SELECT 1', [], (err, rows) => {
@@ -120,7 +139,6 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal Server Error' });
 });
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
