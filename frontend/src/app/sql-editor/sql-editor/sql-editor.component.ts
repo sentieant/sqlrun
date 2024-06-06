@@ -2,6 +2,7 @@ import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-sql-editor',
@@ -35,7 +36,7 @@ export class SqlEditorComponent implements AfterViewInit {
       const token = this.authService.getToken();
 
       this.http
-        .post<any>('http://localhost:3000/api/query', { sql: sqlQuery }, {
+        .post<any>(environment+'/query', { sql: sqlQuery }, {
           headers: {
             Authorization: `Bearer ${token}`
           }
