@@ -97,6 +97,7 @@ function authenticateToken(req, res, next) {
 }
 
 function isManipulativeQuery(sql) {
+    //added a comment
     const forbiddenCommands = ["CREATE", "DROP", "UPDATE", "ALTER", "INSERT"];
     const regex = new RegExp(`\\b(${forbiddenCommands.join('|')})\\b`, 'i');
     
