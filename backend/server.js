@@ -124,6 +124,20 @@ app.post('/api/query', authenticateToken, (req, res) => {
     });
 });
 
+app.get('/api/users-info', authenticateToken, (req, res) => {
+    if (req.user.username !== 'your_username') { 
+        return res.status(403).json({ error: 'Access denied' });
+    }
+
+    userDb.all(`SELECT username, points FROM user`, [], (err, rows) => {
+        if (err) {
+            console.error('Error fetching users info:', err.message);
+            return res.status(500).json({ error: 'Error fetching users info', details: err.message });
+        }
+        res.json({ users: rows });
+    });
+});
+
 app.get('/api/test-database-connection', (req, res) => {
     queryDb.all('SELECT 1', [], (err, rows) => {
         if (err) {
