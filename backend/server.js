@@ -36,6 +36,24 @@ userDb.run(`CREATE TABLE IF NOT EXISTS user(
     points INTEGER DEFAULT 0
 )`);
 
+userDb.run(`CREATE TABLE IF NOT EXISTS executed_queries(
+    user_id INTEGER,
+    query TEXT,
+    PRIMARY KEY (user_id, query),
+    FOREIGN KEY (user_id) REFERENCES user(id)
+)`);
+
+const queryPoints = {
+    "SELECT * FROM GJBBASEMENT": 100,
+    "SELECT * FROM SOEROOM": 100,
+    "SELECT * FROM BAGITEMS": 200,
+    "SELECT * FROM TIMETABLE": 200,
+    "SELECT * FROM ACCESSNISB": 200,
+    "SELECT * FROM TECHLOGS": 200,
+    "SELECT * FROM HARIPRIYALOGS": 300,
+    "SELECT * FROM PARKINGLOT": 300
+};
+
 app.post('/api/register', (req, res) => {
     const { username, password } = req.body;
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -97,15 +115,15 @@ function authenticateToken(req, res, next) {
 }
 
 function isManipulativeQuery(sql) {
-    //added a comment
-    const forbiddenCommands = ["CREATE", "DROP", "UPDATE", "ALTER", "INSERT"];
+    //const forbiddenCommands = ["CREATE", "DROP", "UPDATE", "ALTER", "INSERT"];
+    const forbiddenCommands = ["UPDATE", "ALTER"];
     const regex = new RegExp(`\\b(${forbiddenCommands.join('|')})\\b`, 'i');
-    
     return regex.test(sql);
 }
 
 app.post('/api/query', authenticateToken, (req, res) => {
     const { sql } = req.body;
+    const userId = req.user.id;
 
     console.log('Received SQL query:', sql);
 
@@ -114,14 +132,45 @@ app.post('/api/query', authenticateToken, (req, res) => {
         return res.status(403).json({ error: "YOU CAN'T MANIPULATE THE DATABASE" });
     }
 
-    console.log('Query passed validation, executing:', sql);
     queryDb.all(sql, [], (err, rows) => {
         if (err) {
             console.error('Error executing query:', err.message);
             return res.status(500).json({ error: 'Error executing query', details: err.message });
         }
-        console.log('Query executed successfully, results:', rows);
-        res.json({ results: rows });
+        
+        const normalizedSql = sql.trim().toUpperCase();
+        const points = queryPoints[normalizedSql];
+
+        if (points) {
+            userDb.get(`SELECT * FROM executed_queries WHERE user_id = ? AND query = ?`, [userId, normalizedSql], (err, record) => {
+                if (err) {
+                    console.error('Error checking executed queries:', err.message);
+                    return res.status(500).json({ error: 'Error checking executed queries', details: err.message });
+                }
+
+                if (!record) {
+                    userDb.run(`INSERT INTO executed_queries (user_id, query) VALUES (?, ?)`, [userId, normalizedSql], (err) => {
+                        if (err) {
+                            console.error('Error recording executed query:', err.message);
+                            return res.status(500).json({ error: 'Error recording executed query', details: err.message });
+                        }
+
+                        userDb.run(`UPDATE user SET points = points + ? WHERE id = ?`, [points, userId], (err) => {
+                            if (err) {
+                                console.error('Error updating user points:', err.message);
+                                return res.status(500).json({ error: 'Error updating user points', details: err.message });
+                            }
+
+                            res.json({ results: rows, pointsAwarded: points });
+                        });
+                    });
+                } else {
+                    res.json({ results: rows, pointsAwarded: 0, message: 'Points for this query have already been awarded.' });
+                }
+            });
+        } else {
+            res.json({ results: rows });
+        }
     });
 });
 
