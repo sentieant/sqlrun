@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://sqlrun.onrender.com/api/api'
+  apiUrl: 'https://sqlrun.onrender.com/api'
 };
