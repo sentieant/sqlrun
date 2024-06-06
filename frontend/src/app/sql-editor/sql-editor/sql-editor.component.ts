@@ -36,7 +36,7 @@ export class SqlEditorComponent implements AfterViewInit {
       const token = this.authService.getToken();
 
       this.http
-        .post<any>(environment+'/query', { sql: sqlQuery }, {
+        .post<any>(environment.apiUrl+'/query', { sql: sqlQuery }, {
           headers: {
             Authorization: `Bearer ${token}`
           }
