@@ -1,45 +1,45 @@
 const sqlite3 = require('sqlite3').verbose();
-const fs = require('fs');
 
 const dbFile = './queryDatabase.db';
-if (fs.existsSync(dbFile)) {
-    fs.unlinkSync(dbFile);
-}
 
+// Connect to the database
 const db = new sqlite3.Database(dbFile);
 
-db.serialize(() => {
-    db.run(`CREATE TABLE GJBBASEMENT(
-        item_id INT PRIMARY KEY,
-        item_name VARCHAR(100) NOT NULL,
-        item_description TEXT
-    )`);
-
-    const gjbbasementItems = [
-        [1, "BDC Certificate", "The certificates, which hold huge value to those who donated Blood in NISB WiE’s Blood Donation Camp, in a peculiar place!!"],
-        [2, "RP List", "The list of Resource Persons (RP) for CASS Events, what is it doing beside Prajwal’s Dead Body!!"],
-        [3, "MANAS Newsletter", "The original and the only copy of newsletter MANAS, how is it here!!"],
-        [4, "Prajwal’s Dead Body", "Dead body of the Secretary of Events of NISB"],
-        [5, "Scizzors", "The Scissors used to make creative artifacts, is the murder weapon!!"]
-    ];
-
-    const stmt = db.prepare("INSERT INTO GJBBASEMENT(item_id, item_name, item_description) VALUES (?, ?, ?)");
-
-    for (const item of gjbbasementItems) {
-        stmt.run(item, (err) => {
+// Function to clear all tables
+function clearAllTables() {
+    return new Promise((resolve, reject) => {
+        // Get all table names
+        db.all("SELECT name FROM sqlite_master WHERE type='table'", (err, tables) => {
             if (err) {
-                console.error(`Error inserting row: ${err.message}`);
+                reject(err);
+                return;
             }
+            
+            // Loop through each table and delete all data
+            tables.forEach(({ name }) => {
+                db.run(`DELETE FROM ${name}`, (err) => {
+                    if (err) {
+                        console.error(`Error clearing table ${name}: ${err.message}`);
+                    } else {
+                        console.log(`Cleared table ${name}`);
+                    }
+                });
+            });
+
+            resolve();
         });
-    }
+    });
+}
 
-    stmt.finalize();
-});
-
-db.close((err) => {
-    if (err) {
-        console.error(`Error closing the database: ${err.message}`);
-    } else {
-        console.log("Database closed successfully.");
-    }
-});
+// Call the function to clear all tables
+clearAllTables()
+    .then(() => {
+        console.log('All tables cleared successfully');
+    })
+    .catch((err) => {
+        console.error('Error clearing tables:', err);
+    })
+    .finally(() => {
+        // Close the database connection
+        db.close();
+    });
