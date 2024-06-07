@@ -160,7 +160,11 @@ app.post('/api/query', authenticateToken, (req, res) => {
                                 return res.status(500).json({ error: 'Error updating user points', details: err.message });
                             }
 
-                            res.json({ results: rows, pointsAwarded: points });
+                            if (normalizedSql === "SELECT * FROM CULPRIT WHERE CORE_ID = 7 AND BAG_ID = 1 AND TIMING_ID = 8 AND LOT_ID = 7") {
+                                res.json({ results: rows, pointsAwarded: points, message: 'You found the killer with proof!' });
+                            } else {
+                                res.json({ results: rows, pointsAwarded: points });
+                            }
                         });
                     });
                 } else {
