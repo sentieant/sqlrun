@@ -139,96 +139,73 @@ app.post('/api/query', authenticateToken, (req, res) => {
         }
 
         const normalizedSql = sql.trim().toUpperCase();
-        const points = queryPoints[normalizedSql];
+        const points = queryPoints[normalizedSql] || queryPoints["DEFAULT_QUERY"];
 
-        if (points) {
-            userDb.get(`SELECT * FROM executed_queries WHERE user_id = ? AND query = ?`, [userId, normalizedSql], (err, record) => {
-                if (err) {
-                    console.error('Error checking executed queries:', err.message);
-                    return res.status(500).json({ error: 'Error checking executed queries', details: err.message });
-                }
+        userDb.get(`SELECT * FROM executed_queries WHERE user_id = ? AND query = ?`, [userId, normalizedSql], (err, record) => {
+            if (err) {
+                console.error('Error checking executed queries:', err.message);
+                return res.status(500).json({ error: 'Error checking executed queries', details: err.message });
+            }
 
-                if (!record) {
-                    userDb.run(`INSERT INTO executed_queries (user_id, query) VALUES (?, ?)`, [userId, normalizedSql], (err) => {
-                        if (err) {
-                            console.error('Error recording executed query:', err.message);
-                            return res.status(500).json({ error: 'Error recording executed query', details: err.message });
-                        }
+            if (!record) {
+                userDb.run(`INSERT INTO executed_queries (user_id, query) VALUES (?, ?)`, [userId, normalizedSql], (err) => {
+                    if (err) {
+                        console.error('Error recording executed query:', err.message);
+                        return res.status(500).json({ error: 'Error recording executed query', details: err.message });
+                    }
 
-                        let pointsAwarded = points;
-                        let teamWon = false;
+                    let pointsAwarded = points;
+                    let teamWon = false;
 
-                        if (normalizedSql === "SELECT * FROM HARIPRIYALOG WHERE CORE_ID = 7 AND BAG_ID = 1 AND TIMING_ID = 8 AND LOT_ID = 7") {
-                            pointsAwarded = 0; 
-                            teamWon = true;
-                            userDb.run(`UPDATE user SET points = 1000 WHERE id = ?`, [userId], (err) => {
+                    if (normalizedSql === "SELECT * FROM HARIPRIYALOG WHERE CORE_ID = 7 AND BAG_ID = 1 AND TIMING_ID = 8 AND LOT_ID = 7") {
+                        pointsAwarded = 0;
+                        teamWon = true;
+                        userDb.run(`UPDATE user SET points = 1000 WHERE id = ?`, [userId], (err) => {
+                            if (err) {
+                                console.error('Error updating user points:', err.message);
+                                return res.status(500).json({ error: 'Error updating user points', details: err.message });
+                            }
+                            res.json({ results: rows, pointsAwarded, teamWon, currentPoints: 1000 });
+                        });
+                    } else {
+                        userDb.run(`UPDATE user SET points = points + ? WHERE id = ?`, [pointsAwarded, userId], (err) => {
+                            if (err) {
+                                console.error('Error updating user points:', err.message);
+                                return res.status(500).json({ error: 'Error updating user points', details: err.message });
+                            }
+
+                            userDb.get(`SELECT points FROM user WHERE id = ?`, [userId], (err, user) => {
                                 if (err) {
-                                    console.error('Error updating user points:', err.message);
-                                    return res.status(500).json({ error: 'Error updating user points', details: err.message });
+                                    console.error('Error fetching updated points:', err.message);
+                                    return res.status(500).json({ error: 'Error fetching updated points', details: err.message });
                                 }
-                                res.json({ results: rows, pointsAwarded, teamWon, currentPoints: 1000 });
+                                res.json({ results: rows, pointsAwarded, currentPoints: user.points });
                             });
-                        } else {
-                            userDb.run(`UPDATE user SET points = points + ? WHERE id = ?`, [pointsAwarded, userId], (err) => {
-                                if (err) {
-                                    console.error('Error updating user points:', err.message);
-                                    return res.status(500).json({ error: 'Error updating user points', details: err.message });
-                                }
-
-                                userDb.get(`SELECT points FROM user WHERE id = ?`, [userId], (err, user) => {
-                                    if (err) {
-                                        console.error('Error fetching updated points:', err.message);
-                                        return res.status(500).json({ error: 'Error fetching updated points', details: err.message });
-                                    }
-                                    res.json({ results: rows, pointsAwarded, currentPoints: user.points });
-                                });
-                            });
-                        }
-                    });
-                } else {
-                    userDb.get(`SELECT points FROM user WHERE id = ?`, [userId], (err, user) => {
-                        if (err) {
-                            console.error('Error fetching user points:', err.message);
-                            return res.status(500).json({ error: 'Error fetching user points', details: err.message });
-                        }
-                        res.json({ results: rows, pointsAwarded: 0, message: 'Points for this query have already been awarded.', currentPoints: user.points });
-                    });
-                }
-            });
-        } else {
-            userDb.get(`SELECT points FROM user WHERE id = ?`, [userId], (err, user) => {
-                if (err) {
-                    console.error('Error fetching user points:', err.message);
-                    return res.status(500).json({ error: 'Error fetching user points', details: err.message });
-                }
-                res.json({ results: rows, currentPoints: user.points });
-            });
-        }
+                        });
+                    }
+                });
+            } else {
+                userDb.get(`SELECT points FROM user WHERE id = ?`, [userId], (err, user) => {
+                    if (err) {
+                        console.error('Error fetching user points:', err.message);
+                        return res.status(500).json({ error: 'Error fetching user points', details: err.message });
+                    }
+                    res.json({ results: rows, pointsAwarded: 0, message: 'Points for this query have already been awarded.', currentPoints: user.points });
+                });
+            }
+        });
     });
 });
 
 app.get('/api/user/points', authenticateToken, (req, res) => {
     const userId = req.user.id;
 
-    userDb.get(`SELECT points FROM user WHERE id = ?`, [userId], (err, row) => {
+    userDb.get(`SELECT points FROM user WHERE id = ?`, [userId], (err, user) => {
         if (err) {
             console.error('Error fetching user points:', err.message);
-            return res.status(500).json({ error: 'Error fetching user points' });
+            return res.status(500).json({ error: 'Error fetching user points', details: err.message });
         }
-        if (!row) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.json({ points: row.points });
-    });
-});
-
-app.get('/api/users-info', authenticateToken, (req, res) => {
-    userDb.all(`SELECT username, points FROM user`, (err, rows) => {
-        if (err) {
-            console.error('Error fetching users info:', err.message);
-            return res.status(500).json({ error: 'Error fetching users info' });
-        }
-        res.json(rows);
+        res.json({ points: user.points });
     });
 });
 

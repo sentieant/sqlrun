@@ -76,7 +76,7 @@ export class SqlEditorComponent implements AfterViewInit {
               }
               if (data.teamWon) {
                 alert('The team won! Points have been updated to 1000.');
-                this.userPoints = 1000; // Update points to 1000
+                this.userPoints = 1000;
               }
             } else {
               this.results = [];
