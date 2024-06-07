@@ -200,7 +200,7 @@ app.post('/api/query', authenticateToken, (req, res) => {
 app.get('/api/user/points', authenticateToken, (req, res) => {
     const userId = req.user.id;
 
-    userDb.get(`SELECT points FROM user WHERE id = ?`, [userId], (err, user) => {
+    userDb.get(`SELECT points FROM user WHERE id = ?`, (userId), (err, user) => {
         if (err) {
             console.error('Error fetching user points:', err.message);
             return res.status(500).json({ error: 'Error fetching user points', details: err.message });
