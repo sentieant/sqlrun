@@ -9,29 +9,24 @@ if (fs.existsSync(dbFile)) {
 const db = new sqlite3.Database(dbFile);
 
 db.serialize(() => {
-    db.run(`CREATE TABLE LOCATIONS (
-        loc_id INT PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        loc_description TEXT
+    db.run(`CREATE TABLE GJBBASEMENT(
+        item_id INT PRIMARY KEY,
+        item_name VARCHAR(100) NOT NULL,
+        item_description TEXT
     )`);
 
-    const locations = [
-        [1, "GJBBASEMENT", "Basement area of the GJB building, known for being dimly lit and isolated, also has a cellar to sell Records/Pink Books"],
-        [2, "NISB Room", "Room used by the NISB for storage of sensitive data and other important items"],
-        [3, "Prajwal Room", "Room of Prajwal Bhat and Aravind, the Secretary of Events, has belongings of them"],
-        [4, "Principal's Office", "Office of the Principal, used for administrative meetings and discussions."],
-        [5, "BC Office", "The Office of Branch Counselor of NISB, who is actively guiding the Core team of NISB."],
-        [6, "GJB Canteen", "Canteen in the GJB building, a popular spot for informal meetings."],
-        [7, "Library", "Quiet area for study and research, frequented by students and staff."],
-        [8, "MV Hall", "Hall used for hosting major NISB events and gatherings."],
-        [9, "CS Lab", "Laboratory equipped with computers and other technology, used for practical sessions."],
-        [10, "Inside NISB Room", "Interior of nisb room"]
+    const gjbbasementItems = [
+        [1, "BDC Certificate", "The certificates, which hold huge value to those who donated Blood in NISB WiE’s Blood Donation Camp, in a peculiar place!!"],
+        [2, "RP List", "The list of Resource Persons (RP) for CASS Events, what is it doing beside Prajwal’s Dead Body!!"],
+        [3, "MANAS Newsletter", "The original and the only copy of newsletter MANAS, how is it here!!"],
+        [4, "Prajwal’s Dead Body", "Dead body of the Secretary of Events of NISB"],
+        [5, "Scizzors", "The Scissors used to make creative artifacts, is the murder weapon!!"]
     ];
 
-    const stmt = db.prepare("INSERT INTO LOCATIONS (loc_id, name, loc_description) VALUES (?, ?, ?)");
+    const stmt = db.prepare("INSERT INTO GJBBASEMENT(item_id, item_name, item_description) VALUES (?, ?, ?)");
 
-    for (const location of locations) {
-        stmt.run(location, (err) => {
+    for (const item of gjbbasementItems) {
+        stmt.run(item, (err) => {
             if (err) {
                 console.error(`Error inserting row: ${err.message}`);
             }
