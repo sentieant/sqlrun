@@ -15,6 +15,7 @@ export class SqlEditorComponent implements AfterViewInit {
   @ViewChild('editor') private editor!: ElementRef<HTMLElement>;
   public results: any[] = [];
   public tableKeys: string[] = [];
+  public userPoints: number | null = null;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -27,6 +28,26 @@ export class SqlEditorComponent implements AfterViewInit {
       aceEditor.setTheme('ace/theme/twilight');
       aceEditor.session.setMode('ace/mode/sql');
     }
+    this.fetchUserPoints();
+  }
+
+  fetchUserPoints() {
+    const token = this.authService.getToken();
+    this.http.get<any>(environment.apiUrl + '/user/points', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }).subscribe(
+      data => {
+        if (data && data.points !== undefined) {
+          this.userPoints = data.points;
+        }
+      },
+      (error: HttpErrorResponse) => {
+        console.error('Error fetching user points:', error);
+        this.userPoints = null;
+      }
+    );
   }
 
   runQuery() {
