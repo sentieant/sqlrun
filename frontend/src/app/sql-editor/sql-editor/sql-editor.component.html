@@ -1,6 +1,7 @@
 <div>
   <div #editor style="height: 400px; width: 100%;"></div>
   <button (click)="runQuery()">Run Query</button>
+  <button (click)="viewPoints()">Show Current Points</button>
   <span *ngIf="userPoints !== null">Your Points: {{ userPoints }}</span>
   <div *ngIf="results.length > 0">
     <h3>Results:</h3>

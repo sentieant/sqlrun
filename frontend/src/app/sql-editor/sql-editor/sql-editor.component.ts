@@ -50,6 +50,10 @@ export class SqlEditorComponent implements AfterViewInit {
     );
   }
 
+  viewPoints() {
+    alert(`Current Points: ${this.userPoints !== null ? this.userPoints : 'N/A'}`);
+  }
+
   runQuery() {
     if (typeof window !== 'undefined') {
       const ace = (window as any).ace;
@@ -57,7 +61,7 @@ export class SqlEditorComponent implements AfterViewInit {
       const token = this.authService.getToken();
 
       this.http
-        .post<any>(environment.apiUrl+'/query', { sql: sqlQuery }, {
+        .post<any>(environment.apiUrl + '/query', { sql: sqlQuery }, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -67,6 +71,13 @@ export class SqlEditorComponent implements AfterViewInit {
             if (data && data.results) {
               this.results = data.results;
               this.tableKeys = Object.keys(data.results[0]);
+              if (data.pointsAwarded !== undefined) {
+                this.userPoints = data.currentPoints;
+              }
+              if (data.teamWon) {
+                alert('The team won! Points have been updated to 1000.');
+                this.userPoints = 1000; // Update points to 1000
+              }
             } else {
               this.results = [];
               this.tableKeys = [];
@@ -79,7 +90,7 @@ export class SqlEditorComponent implements AfterViewInit {
             } else if (error.status === 401) {
               alert('Unauthorized access. Please check your permissions.');
             } else if (error.status === 500) {
-              console.error('Server error details:', error.error.details); 
+              console.error('Server error details:', error.error.details);
               alert('An error occurred while executing the query.');
             } else {
               console.error('Error executing query:', error);
