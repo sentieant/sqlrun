@@ -157,7 +157,7 @@ app.post('/api/query', authenticateToken, (req, res) => {
                     let pointsAwarded = points;
                     let teamWon = false;
 
-                    if (normalizedSql === "SELECT * FROM HARIPRIYALOG WHERE CORE_ID = 7 AND BAG_ID = 1 AND TIMING_ID = 8 AND LOT_ID = 7") {
+                    if (normalizedSql === "SELECT * FROM CULPRIT WHERE CORE_ID = 7 AND BAG_ID = 1 AND TIMING_ID = 8 AND LOT_ID = 7") {
                         pointsAwarded = 0;
                         teamWon = true;
                         userDb.run(`UPDATE user SET points = 1000 WHERE id = ?`, [userId], (err) => {
